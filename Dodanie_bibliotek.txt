@@ -1,0 +1,81 @@
+Do korzystania z MySQL w C++ trzeba najpierw ściągnąć potrzebne nam biblioteki,
+a następnie ustawić kilka rzeczy w kompilatorze i podać ścieżki do bibliotek.
+------------------------------------
+Ściągamy "Connector C++" oraz "MySQL Server".
+Będą nam potrzebne pliki z folderów "include" oraz "lib"
+oraz 2 pliki z folderu "bin" z "MySQL Server".
+
+Następnie trzeba wprowadzić kilka ustawień w kompilatorze aby zadziałała biblioteka
+#include <mysql.h>
+------------------------------------
+Wersja ustawień dla Visual Studio 2019
+
+1.
+Po otworzeniu projektu klikamy prawym na projekt i wybieramy właściwości
+Project -> Properties
+
+2.
+Ustawiamy "Platform" na x64
+Biblioteki MySQL są 64 bitowe więc wersja x86 (32 bity) nie zadziała.
+
+3.
+Będąc w ustawieniach wchodzimy w:
+C/C++ -> General -> Additional Include Directories -> <Edit...>
+Mastępnie w pierwszym oknie wybieramy do dodania foldery "include"
+z "Connector C++" oraz "MySQL Server".
+np.:
+C:\Users\Feniks\Desktop\MySQL_project\MySQL_project\MySQL_libs\Connector C++ 8.0\include
+C:\Users\Feniks\Desktop\MySQL_project\MySQL_project\MySQL_libs\MySQL Server 8.0\include
+
+W tym przypadku biblioteki te umieściłem już razem z plikami źródłowymi.
+Dzięki temu zamiast pełnych ścieżek można podać ścieżki względne do nich:
+MySQL_libs\Connector C++ 8.0\include
+MySQL_libs\MySQL Server 8.0\include
+
+Po instalacji domyślnie te pliki powinny znajdować się w "Program Files",
+skąd można je skopiować w inne miejsce lub podać ścieżkę do tego miejsca.
+
+4.
+Linker -> General -> Additional Library Directories -> <Edit...>
+W pierwszym oknie dodajemy folder "lib\vs14" z "Connector C++"
+oraz "lib" z "MySQL Server".
+np.:
+C:\Users\Feniks\Desktop\MySQL_project\MySQL_project\MySQL_libs\Connector C++ 8.0\lib64\vs14
+C:\Users\Feniks\Desktop\MySQL_project\MySQL_project\MySQL_libs\MySQL Server 8.0\lib
+lub w tym przypadku też są możliwe ścieżki względne:
+MySQL_libs\Connector C++ 8.0\lib64\vs14
+MySQL_libs\MySQL Server 8.0\lib
+
+5.
+Linker -> Input -> Additional Dependencies -> <Edit...>
+W pierwszym oknie dopisujemy:
+mysqlcppconn.lib
+libmysql.lib
+
+6.
+Po zapisaniu zmian w ustawieniach pora skompilować projekt.
+Jeśli została już dodana biblioteka #include <mysql.h>
+może wyskoczyć błąd przy kompilacji, którym się nie przejmujemy.
+
+7.
+Wyłączamy program i wchodzimy w folder z plikiem .exe naszego programu
+np.:
+MySQL_project\x64\Debug
+lub
+MySQL_project\x64\Release
+w zależności co wybraliśmy w ustawieniach kompilatora.
+Do tego folderu dodajemy 3 pliki:
+libmysql.dll
+libeay32.dll
+ssleay32.dll
+
+Potrzebne pliki kopiujemy z "MySQL Server"
+libmysql.dll z folderu "lib"
+libeay32.dll i ssleay32.dll z folderu "bin"
+
+8.
+Po wykonaniu tych czynności nasza dodana w kodzie biblioteka #include <mysql.h>
+powinna już bezproblemu działać :)
+
+Link do poradnika na YouTube:
+https://youtu.be/yNniOHn9Xe0

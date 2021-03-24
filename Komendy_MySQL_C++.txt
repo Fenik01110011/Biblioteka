@@ -1,0 +1,147 @@
+#include <mysql.h>
+
+MYSQL mysql; // zmienna typu MYSQL
+MYSQL_ROW row; //przechowuje wiersz tabeli
+MYSQL_RES* res; //przechowuje wskaźnik identyfikujący zapytanie (id zapytania), res (result) czyli rezultat zapytania
+
+mysql_init(&mysql); //inicjalizacja
+ 	
+mysql_real_connect(&mysql, "127.0.0.1", "root", "", "mysql", 3306, NULL, 0);
+mysql_real_connect(&mysql, "adresSerwera", "nazwaUrzytkownika", "haslo", "nazwaBazyDanych", port, unixSocket, flagiKlienta);
+MYSQL *mysql_real_connect(MYSQL *mysql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port, const char *unix_socket, unsigned long client_flag);
+	//zwróci wartość 0 jeśli nawiązanie połączenia z bazą nie powiedzie się
+	//3306 to domyślny port serwera MySQL
+
+mysql_query(&mysql, query); //wysyła pytanie SQL do bazy
+	//rezultat zapisuje się w zmiennej MYSQL której wskaźnik podaje się w pierwszym argumencie funkcji
+	//funckja zwraca numer błędu jeśli pytanie nie mogło zostać wykonane, a wartość 0 jeśli zapytanie powiodło się
+
+
+res = mysql_store_result(&mysql); //zwraca wskaźnik do rezultatów zapytania
+
+row = mysql_fetch_row(res); //każde wywołanie zwraca kolejny wiersz z wcześniejszego zapytania
+	//zwraca wartość 0 (false) jeśli nie ma już więcej wierszy do pobrania
+
+mysql_num_rows(res); //zwraca ilość wierszy otrzymanych z zapytania
+
+mysql_field_count(&mysql); //zwraca ilość kolumn pobranych w zapytaniu
+
+mysql_affected_rows(&mysql); //zwraca ilość zmienionych wierszy przez zapytania typu UPDATE, DELETE, albo INSERT
+	//dla SELECT działa podobnie jak mysql_num_rows(res)
+
+mysql_num_fields(res); //zwraca liczbę kolumn w zestawie wyników
+
+mysql_error(&mysql); //wypisuje rodzaj błędu słownie
+mysql_errno(&mysql); //zwraca kod błędu
+
+mysql_free_result(res); //czyści rezultat zapytania
+
+mysql_close(&mysql); //zamknięcie połącznie z bazą
+
+unsigned long mysql_real_escape_string(MYSQL *mysql, char *to, const char *from, unsigned long length)
+mysql_real_escape_string(&mysql, docelowa_zmienna, teks_do_sprawdzenia, dlugość_tekstu_do_sprawdzenia);
+mysql_real_escape_string(&mysql, zmienna, "mistrz hakerstwa -- \n", 21);
+//zwraca długość napisu po sanityzacji (sprawdzeniu czy są tam jakieś niedozwolone znaki, a jeśli tak to podmienieniu ich)
+//maksymalna długość może być 2x + 1 długości w przypadku gdy każdy znak uległ by podmianie, + 1 na znak końca lini
+Przykładowy kod:
+		string podany_tekst = "proba wstrzykiwania SQL --";
+		char* bufor = new char[podany_tekst.length() * 2 + 1]; //na wszeli wypadek powinno zarezerwować się x2 + 1 długości obecnego łańcucha
+		mysql_real_escape_string(&mysql, bufor, podany_tekst.c_str(), podany_tekst.length());
+		podany_tekst = bufor;
+		delete[] bufor;
+
+
+Przykładowy kod
+------------------------------------------------------------------
+#include <iostream>
+#include <mysql.h>
+
+using namespace std;
+
+int main()
+{
+	MYSQL mysql;
+	MYSQL_ROW row;
+	MYSQL_RES* res;
+
+	mysql_init(&mysql);
+	
+	if (mysql_real_connect(&mysql, "127.0.0.1", "root", "", "mysql", 3306, NULL, 0))
+	{
+		cout << "Polaczenie powiodlo sie!" << endl;
+
+		string query = "SELECT * FROM Ksiazki";
+		
+		/*
+		string podany_tekst = "proba wstrzykiwania SQL --";
+		char* bufor = new char[podany_tekst.length() * 2 + 1];
+		mysql_real_escape_string(&mysql, bufor, podany_tekst.c_str(), podany_tekst.length());
+		podany_tekst = bufor;
+		delete[] bufor;
+		*/
+		
+		if (!mysql_query(&mysql, query.c_str()))
+		{
+			res = mysql_store_result(&mysql);
+
+			cout << "Liczba zwroconych wierszy z zapytania: " << mysql_num_rows(res) << endl;
+			cout << "Liczba zwroconych kolumn z zapytania: " << mysql_field_count(&mysql) << endl;
+			cout << endl;
+			cout << "Liczba zwroconych wierszy z zapytania drugim sposobem: " << mysql_affected_rows(&mysql) << endl;
+			cout << "Liczba zwroconych kolumn z zapytania drugim sposobem: " << mysql_num_fields(res) << endl;
+			
+			cout << endl << "Rezultat zapytania:" << endl;
+			while (row = mysql_fetch_row(res))
+			{
+				for (int i = 0; i < (int)mysql_field_count(&mysql); ++i)
+					cout << row[i] << "\t";
+				cout << endl;
+			}
+			mysql_free_result(res);
+
+			cout << endl;
+			cout << "Liczba zwroconych wierszy z zapytania: " << mysql_num_rows(res) << endl;
+			cout << "Liczba zwroconych kolumn z zapytania: " << mysql_field_count(&mysql) << endl;
+			cout << endl;
+			cout << "Liczba zwroconych wierszy z zapytania drugim sposobem: " << mysql_affected_rows(&mysql) << endl;
+			cout << "Liczba zwroconych kolumn z zapytania drugim sposobem: " << mysql_num_fields(res) << endl;
+		}
+		else
+		{
+			cout << "Error code: " << mysql_errno(&mysql) << endl;
+			cout << "Query failed: " << mysql_error(&mysql) << endl;
+		}
+	}
+	else
+	{
+		cout << "Nie udalo sie polaczyc z baza." << endl;
+		cout << "Error code: " << mysql_errno(&mysql) << endl;
+		cout << mysql_error(&mysql) << endl;
+	}
+	
+	mysql_close(&mysql);
+	std::system("pause");
+	return 0;
+}
+------------------------------------------------------------------
+
+Przydładowe wyjście programu:
+//////////////////////////////////////////////////////////////////
+Polaczenie powiodlo sie!
+Liczba zwroconych wierszy z zapytania: 2
+Liczba zwroconych kolumn z zapytania: 4
+
+Liczba zwroconych wierszy z zapytania drugim sposobem: 2
+Liczba zwroconych kolumn z zapytania drugim sposobem: 4
+
+Rezultat zapytania:
+1       Eragon  Christopher Paolini     2004
+2       Duchy   Zbigniew Jan Popko      2005
+
+Liczba zwroconych wierszy z zapytania: 2
+Liczba zwroconych kolumn z zapytania: 4
+
+Liczba zwroconych wierszy z zapytania drugim sposobem: 2
+Liczba zwroconych kolumn z zapytania drugim sposobem: 4
+Press any key to continue . . .
+//////////////////////////////////////////////////////////////////
