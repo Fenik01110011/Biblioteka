@@ -1,0 +1,4 @@
+host = s113.linuxpl.com
+db_user = phoenixw_library
+db_password = 3Pg45$l%$&L2#G1
+db_name = phoenixw_library
